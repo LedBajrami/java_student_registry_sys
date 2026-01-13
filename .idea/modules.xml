@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/jvprcc.iml" filepath="$PROJECT_DIR$/jvprcc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/java-uni-project.iml" 
+filepath="$PROJECT_DIR$/java-uni-project.iml" />
     </modules>
   </component>
 </project>
