@@ -29,9 +29,8 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-echo ".idea/workspace.xml" >> .gitignore
-echo ".idea/tasks.xml" >> .gitignore
-echo "*.iml" >> .gitignore
-echo "out/" >> .gitignore
-echo "src/.idea/" >> .gitignore
-echo "src/*.iml" >> .gitignore
+.idea/workspace.xml
+.idea/tasks.xml
+*.iml
+src/.idea/
+src/*.iml
