@@ -1,0 +1,10 @@
+CS101, Introduction to Programming, 3
+CS201, Data Structures, 4
+CS301, Algorithms, 4
+CS401, Operating Systems, 3
+MATH150, Calculus I, 4
+MATH250, Calculus II, 4
+CS501, Advanced Databases, 3
+CS601, Machine Learning, 4
+ENG101, English Composition, 3
+PHYS201, Physics I, 4

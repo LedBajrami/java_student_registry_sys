@@ -1,0 +1,8 @@
+123456, Jane, Doe, jane.doe@email.com, UG
+234567, John, Smith, john.smith@email.com, UG
+345678, Alice, Brown, alice.brown@email.com, G
+456789, Bob, Wilson, , G
+567890, Charlie, Davis, charlie.davis@email.com, UG
+678901, Emma, Johnson, emma.johnson@email.com, UG
+789012, David, Lee, david.lee@email.com, G
+890123, Sarah, Martinez, , UG
