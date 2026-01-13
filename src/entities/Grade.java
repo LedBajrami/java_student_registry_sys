@@ -4,9 +4,9 @@ public class Grade {
     private final String studentId;
     private final String courseCode;
     private final String semester;
-    private final int numericGrade;
+    private final int grade;
 
-    public Grade(String studentId, String courseCode, String semester, int numericGrade) {
+    public Grade(String studentId, String courseCode, String semester, int grade) {
         if (studentId == null || studentId.trim().isEmpty()) {
             throw new IllegalArgumentException("Student ID cannot be empty");
         }
@@ -22,10 +22,10 @@ public class Grade {
         }
         this.semester = semester;
 
-        if (numericGrade < 0 || numericGrade > 100) {
+        if (grade < 0 || grade > 100) {
             throw new IllegalArgumentException("Grade must be between 0 and 100");
         }
-        this.numericGrade = numericGrade;
+        this.grade = grade;
     }
 
     private boolean isValidSemesterFormat(String semester) {
@@ -42,10 +42,10 @@ public class Grade {
     public String getStudentId() { return studentId; }
     public String getCourseCode() { return courseCode; }
     public String getSemester() { return semester; }
-    public int getNumericGrade() { return numericGrade; }
+    public int getNumericGrade() { return grade; }
 
     @Override
     public String toString() {
-        return studentId + ", " + courseCode + ", " + semester + ", " + numericGrade;
+        return studentId + ", " + courseCode + ", " + semester + ", " + grade;
     }
 }

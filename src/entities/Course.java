@@ -4,7 +4,6 @@ public class Course {
     private final String code;
     private final String title;
     private final int credits;
-    private final Level level;
 
     public Course(String code, String title, int credits) {
         if (code == null || !code.matches("[A-Z]{2,4}[0-9]{3}")) {
@@ -22,10 +21,9 @@ public class Course {
         }
         this.credits = credits;
 
-        this.level = computeLevelFromCode(code);
     }
 
-    private Level computeLevelFromCode(String code) {
+    public Level getLevel(String code) {
         char firstDigit = code.charAt(code.length() - 3);
         if (firstDigit >= '1' && firstDigit <= '4') {
             return Level.UG;
@@ -37,7 +35,6 @@ public class Course {
     public String getCode() { return code; }
     public String getTitle() { return title; }
     public int getCredits() { return credits; }
-    public Level getLevel() { return level; }
 
     @Override
     public String toString() {

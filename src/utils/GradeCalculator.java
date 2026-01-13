@@ -1,5 +1,10 @@
 package utils;
+import entities.Course;
+import entities.Grade;
 import entities.Level;
+
+import java.util.List;
+import java.util.Map;
 
 public class GradeCalculator {
 
@@ -43,6 +48,4 @@ public class GradeCalculator {
             default: return 0.00;
         }
     }
-
-    // todo -> add the method that calculates GPA and total credits
 }
