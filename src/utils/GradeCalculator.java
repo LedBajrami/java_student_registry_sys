@@ -48,4 +48,23 @@ public class GradeCalculator {
             default: return 0.00;
         }
     }
+
+    public static double calculateGPA(List<Grade> studentGrades, Map<String, Course> courses, Level studentLevel) {
+        double totalPoints = 0.0;
+        int totalCredits = 0;
+
+        for (Grade studentGrade : studentGrades) {
+            Course course = courses.get(studentGrade.getCourseCode());
+
+            String letterGrade = getLetterGrade(studentGrade.getNumericGrade(), studentLevel);
+
+            double pointValue = getPointValue(letterGrade);
+
+            totalPoints += course.getCredits() * pointValue;
+            totalCredits += course.getCredits();
+        }
+
+        if (totalCredits == 0) return 0.0;
+        return totalPoints / totalCredits;
+    }
 }

@@ -2,6 +2,7 @@ package registry;
 
 import entities.*;
 import utils.FileHandler;
+import utils.GradeCalculator;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,9 +25,7 @@ public class RegistrySystem {
 
     public String loadFile(String folderPath) throws IOException {
         // check if loaded first
-        if (dataLoaded) {
-            throw new IOException("data already loaded, cannot load again!");
-        }
+        checkIfDataLoadedLoadCommand();
 
         // validate folder exists
         java.nio.file.Path path = java.nio.file.Paths.get(folderPath);
@@ -109,5 +108,120 @@ public class RegistrySystem {
         dataLoaded = true;
         String successMessage = "loaded " + students.size() + " students, " + courses.size() + " courses, and " + grades.size() + " grades";
         return successMessage;
+    }
+
+    public String findCourse(String courseCode) {
+        checkIfDataLoaded();
+
+        if (!courses.containsKey(courseCode)) {
+            return "no course found";
+        }
+
+        Course course = courses.get(courseCode);
+        String courseLevel = course.getLevel() == Level.UG ? "undergraduate" : "graduate";
+        return String.format("code: %s\ntitle: %s\ncredits: %d\nlevel: %s",
+                course.getCode(),
+                course.getTitle(),
+                course.getCredits(),
+                courseLevel
+        );
+    }
+
+    public String findStudent(String studentId) {
+        checkIfDataLoaded();
+
+        if (!students.containsKey(studentId)) {
+            return "no student found";
+        }
+
+        Student student = students.get(studentId);
+        int totalCredits = 0;
+
+        /* iterate to:
+            1. populate the studentGrades list, to then pass for gpa calculation
+            2. find the unique courses the student has taken
+         */
+        List<Grade> studentGrades = new ArrayList<>();
+        List<String> uniqueCourses = new ArrayList<>();
+        for (Grade studentGrade : grades) {
+            // check to see if we have the correct student
+            if (!studentGrade.getStudentId().equals(studentId)) {
+                continue;
+            }
+            studentGrades.add(studentGrade);
+
+            String courseCode = studentGrade.getCourseCode();
+            if (!uniqueCourses.contains(courseCode)) {
+                uniqueCourses.add(studentGrade.getCourseCode());
+            }
+
+            totalCredits += courses.get(courseCode).getCredits();
+        }
+
+        if (studentGrades.isEmpty()) {
+            return "student has no grades";
+        }
+
+        String studentLevel = student.getLevel() == Level.UG ? "undergraduate" : "graduate";
+        double gpa = GradeCalculator.calculateGPA(studentGrades, courses, student.getLevel());
+
+        return String.format("id: %s\nname: %s\nsurname: %s\nemail: %s\nlevel: %s\ncourses: %d\ncourses: %d\ngpa: %.2f",
+                student.getId(),
+                student.getName(),
+                student.getSurname(),
+                student.getEmail(),
+                studentLevel,
+                uniqueCourses.size(),
+                totalCredits,
+                gpa
+        );
+    }
+
+    public String findGrade(String studentId, String courseCode) {
+        checkIfDataLoaded();
+
+        Grade studentGrade = null;
+        for (Grade grade : grades) {
+            if (grade.getStudentId().equals(studentId) &&
+                grade.getCourseCode().equals(courseCode))
+            {
+                studentGrade = grade;
+                break;
+            }
+        }
+
+        if (studentGrade == null) {
+            return "no grade found";
+        }
+
+        Course course = courses.get(courseCode);
+        return String.format("student: (%s - %s)\ncourse: (%s - %s, %d cr.)\nsemseter: %s\ngrade: %d\nletterGrade: %s",
+                studentId,
+                students.get(studentId).getFullName(),
+                courseCode,
+                course.getTitle(),
+                course.getCredits(),
+                studentGrade.getSemester(),
+                studentGrade.getNumericGrade(),
+                GradeCalculator.getLetterGrade(studentGrade.getNumericGrade(), students.get(studentId).getLevel())
+        );
+    }
+
+
+    private void checkIfDataLoaded() {
+        if (!dataLoaded) {
+            throw new IllegalStateException("Please load the data first!");
+        }
+    }
+
+    // for load command
+    private void checkIfDataLoadedLoadCommand() {
+        if (dataLoaded) {
+            throw new IllegalStateException("data already loaded, cannot load again!");
+        }
+    }
+
+    public boolean isDataLoaded() {
+        return dataLoaded;
     }
 }

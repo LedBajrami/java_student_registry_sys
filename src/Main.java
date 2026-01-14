@@ -1,4 +1,5 @@
 import commands.CLICommandInterface;
+import commands.FindCommand;
 import commands.LoadCommand;
 import registry.RegistrySystem;
 
@@ -16,15 +17,19 @@ public class Main {
         while (true) {
             System.out.print("? ");
             String input = scanner.nextLine().trim();
-
+            String formattedInput = input.toLowerCase();
             String result = "";
 
-            if (input.startsWith("load")) {
-                result = LoadCommand.exec(input, registrySystem);
-            } else if (input.equals("quit")) {
+            if (formattedInput.equals("quit")) {
                 System.out.println("The program is terminated.");
                 break;
-            } else {
+            } else if (formattedInput.startsWith("load")) {
+                result = LoadCommand.exec(input, registrySystem);
+            } else if (!registrySystem.isDataLoaded()) {
+                result = "Please load the data first! HINT: load <folder>";
+            } else if (formattedInput.startsWith("find")) {
+                result = FindCommand.exec(input, registrySystem);
+            } else  {
                 result = "Unknown command: " + input;
             }
 

@@ -23,7 +23,7 @@ public class Course {
 
     }
 
-    public Level getLevel(String code) {
+    public Level getLevel() {
         char firstDigit = code.charAt(code.length() - 3);
         if (firstDigit >= '1' && firstDigit <= '4') {
             return Level.UG;
