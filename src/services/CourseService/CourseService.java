@@ -4,6 +4,7 @@ import entities.Course;
 import entities.Level;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -40,5 +41,69 @@ public class CourseService implements CourseServiceInterface {
                 course.getCredits(),
                 courseLevel
         );
+    }
+
+    @Override
+    public String queryCourse(Map<String, Course> courses, String[] parametersArray) {
+        ArrayList<Course> foundCourses = new ArrayList<>();
+
+        for (Course course : courses.values()) {
+            boolean matches = true;
+
+            for (String parameter : parametersArray) {
+
+                if (parameter.contains("=")) {
+                    String[] commandParts = parameter.split("=");
+                    String key = commandParts[0].trim();
+                    String value = commandParts[1].trim();
+
+                    switch (key) {
+                        case "title":
+                            if (!course.getTitle().equals(value)) matches = false;
+                            break;
+                        case "code":
+                            if (!course.getCode().equals(value)) matches = false;
+                            break;
+                        case "credits":
+                            // convert the credits to string to avoid problems
+                            if (!String.valueOf(course.getCredits()).equals(value)) matches = false;
+                            break;
+                        default:
+                            matches = false;
+                            break;
+                    }
+
+
+                } else if (parameter.contains("~")) {
+                    String[] commandParts = parameter.split("~");
+                    String key = commandParts[0].trim();
+                    String value = commandParts[1].trim();
+
+                    switch (key) {
+                        case "title":
+                            if (!course.getTitle().contains(value)) matches = false;
+                            break;
+                        case "code":
+                            if (!course.getCode().contains(value)) matches = false;
+                            break;
+                        case "credits":
+                            // convert the credits to string to avoid problems
+                            if (!String.valueOf(course.getCredits()).contains(value)) matches = false;
+                            break;
+                        default:
+                            matches = false;
+                            break;
+                    }
+                }
+            }
+            if (matches) foundCourses.add(course);
+        }
+
+        StringBuilder coursesString = new StringBuilder();
+        for (Course course : foundCourses) {
+            coursesString.append(course.toString()).append("\n");
+        }
+
+        return String.format("%d records found\n%s", foundCourses.size(), coursesString);
     }
 }

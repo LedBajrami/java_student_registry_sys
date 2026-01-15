@@ -12,4 +12,6 @@ public interface StudentServiceInterface {
     public void loadStudents(List<String> studentLines, Map<String, Student> students) throws IOException;
 
     public String findStudent(Map<String, Student> students, Map<String, Course> courses, List<Grade> grades, String studentId);
+
+    public String queryStudent(Map<String, Student> students, String[] parametersArray);
 }

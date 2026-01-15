@@ -88,4 +88,80 @@ public class StudentService implements StudentServiceInterface{
         );
     }
 
+
+    @Override
+    public String queryStudent(Map<String, Student> students, String[] parametersArray) {
+        ArrayList<Student> foundStudents = new ArrayList<>();
+
+        for (Student student : students.values()) {
+            boolean matches = true;
+
+            for (String parameter : parametersArray) {
+
+                if (parameter.contains("=")) {
+                    String[] commandParts = parameter.split("=");
+                    String key = commandParts[0].trim();
+                    String value = commandParts[1].trim();
+
+                    switch (key) {
+                        case "id":
+                            if (!student.getId().equals(value)) matches = false;
+                            break;
+                        case "name":
+                            if (!student.getName().equals(value)) matches = false;
+                            break;
+                        case "surname":
+                            if (!student.getSurname().equals(value)) matches = false;
+                            break;
+                        case "email":
+                            if (!student.getEmail().equals(value)) matches = false;
+                            break;
+                        case "level":
+                            // Convert string to Level enum, then compare
+                            if (!student.getLevel().name().equals(value)) matches = false;
+                            break;
+                        default:
+                            matches = false;
+                            break;
+                    }
+
+                } else  if (parameter.contains("~")) {
+                    String[] commandParts = parameter.split("~");
+                    String key = commandParts[0].trim();
+                    String value = commandParts[1].trim();
+
+                    switch (key) {
+                        case "id":
+                            if (!student.getId().contains(value)) matches = false;
+                            break;
+                        case "name":
+                            if (!student.getName().contains(value)) matches = false;
+                            break;
+                        case "surname":
+                            if (!student.getSurname().contains(value)) matches = false;
+                            break;
+                        case "email":
+                            if (!student.getEmail().contains(value)) matches = false;
+                            break;
+                        case "level":
+                            // Convert string to Level enum, then compare
+                            if (!student.getLevel().name().contains(value)) matches = false;
+                            break;
+                        default:
+                            matches = false;
+                            break;
+                    }
+
+                }
+            }
+            if (matches) foundStudents.add(student);
+        }
+
+        StringBuilder studentsString = new StringBuilder();
+        for (Student student : foundStudents) {
+            studentsString.append(student.toString()).append("\n");
+        }
+
+        return String.format("%d records found\n%s", foundStudents.size(), studentsString);
+    }
 }

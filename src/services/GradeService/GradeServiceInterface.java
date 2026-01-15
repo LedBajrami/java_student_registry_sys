@@ -12,4 +12,6 @@ public interface GradeServiceInterface {
     public void loadGrades(List<String> gradeLines, List<Grade> grades) throws IOException;
 
     public String findGrade(List<Grade> grades, Map<String, Student> students, Map<String, Course> courses, String studentId, String courseCode);
+
+    public String queryGrade(List<Grade> grades, String[] parametersArray);
 }

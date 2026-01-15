@@ -6,6 +6,7 @@ import entities.Student;
 import utils.GradeCalculator;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -58,4 +59,71 @@ public class GradeService implements GradeServiceInterface {
         );
     }
 
+    @Override
+    public String queryGrade(List<Grade> grades, String[] parametersArray) {
+        ArrayList<Grade> foundGrades = new ArrayList<>();
+
+        for (Grade grade : grades) {
+            boolean matches = true;
+
+            for (String parameter : parametersArray) {
+
+                if (parameter.contains("=")) {
+                    String[] commandParts = parameter.split("=");
+                    String key = commandParts[0].trim();
+                    String value = commandParts[1].trim();
+
+                    switch (key) {
+                        case "studentId":
+                            if (!grade.getStudentId().equals(value)) matches = false;
+                            break;
+                        case "courseCode":
+                            if (!grade.getCourseCode().equals(value)) matches = false;
+                            break;
+                        case "semester":
+                            if (!grade.getSemester().equals(value)) matches = false;
+                            break;
+                        case "grade":
+                            if (!String.valueOf(grade.getNumericGrade()).equals(value)) matches = false;
+                            break;
+                        default:
+                            matches = false;
+                            break;
+                    }
+
+                } else  if (parameter.contains("~")) {
+                    String[] commandParts = parameter.split("~");
+                    String key = commandParts[0].trim();
+                    String value = commandParts[1].trim();
+
+                    switch (key) {
+                        case "studentId":
+                            if (!grade.getStudentId().contains(value)) matches = false;
+                            break;
+                        case "courseCode":
+                            if (!grade.getCourseCode().contains(value)) matches = false;
+                            break;
+                        case "semester":
+                            if (!grade.getSemester().contains(value)) matches = false;
+                            break;
+                        case "grade":
+                            if (!String.valueOf(grade.getNumericGrade()).contains(value)) matches = false;
+                            break;
+                        default:
+                            matches = false;
+                            break;
+                    }
+
+                }
+            }
+            if (matches) foundGrades.add(grade);
+        }
+
+        StringBuilder gradesString = new StringBuilder();
+        for (Grade grade : foundGrades) {
+            gradesString.append(grade.toString()).append("\n");
+        }
+
+        return String.format("%d records found\n%s", foundGrades.size(), gradesString);
+    }
 }

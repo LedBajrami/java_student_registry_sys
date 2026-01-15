@@ -29,8 +29,7 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-.idea/workspace.xml
-.idea/tasks.xml
+.idea/
 *.iml
 src/.idea/
 src/*.iml

@@ -38,6 +38,7 @@ public class RegistrySystem {
         this.gradeService = new GradeService();
     }
 
+    // --- LOAD METHOD ---
     public String loadFile(String folderPath) throws IOException {
         // check if loaded first
         checkIfDataLoadedLoadCommand();
@@ -76,6 +77,7 @@ public class RegistrySystem {
         return successMessage;
     }
 
+    // --- FIND METHOD ---
     public String findCourse(String courseCode) {
         checkIfDataLoaded();
         return courseService.findCourse(courses, courseCode);
@@ -89,6 +91,22 @@ public class RegistrySystem {
     public String findGrade(String studentId, String courseCode) {
         checkIfDataLoaded();
         return gradeService.findGrade(grades, students, courses, studentId, courseCode);
+    }
+
+    // --- QUERY METHOD ---
+    public String queryCourse(String[] parametersArray) {
+        checkIfDataLoaded();
+        return courseService.queryCourse(courses, parametersArray);
+    }
+
+    public String queryStudent(String[] parametersArray) {
+        checkIfDataLoaded();
+        return studentService.queryStudent(students, parametersArray);
+    }
+
+    public String queryGrade(String[] parametersArray) {
+        checkIfDataLoaded();
+        return  gradeService.queryGrade(grades, parametersArray);
     }
 
 

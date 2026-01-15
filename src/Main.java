@@ -1,6 +1,7 @@
 import commands.CLICommandInterface;
 import commands.FindCommand;
 import commands.LoadCommand;
+import commands.QueryCommand;
 import registry.RegistrySystem;
 
 import java.io.IOException;
@@ -29,6 +30,8 @@ public class Main {
                 result = "Please load the data first! HINT: load <folder>";
             } else if (formattedInput.startsWith("find")) {
                 result = FindCommand.exec(input, registrySystem);
+            } else if (formattedInput.startsWith("query")) {
+                result = QueryCommand.exec(input, registrySystem);
             } else  {
                 result = "Unknown command: " + input;
             }
