@@ -14,4 +14,6 @@ public interface StudentServiceInterface {
     public String findStudent(Map<String, Student> students, Map<String, Course> courses, List<Grade> grades, String studentId);
 
     public String queryStudent(Map<String, Student> students, String[] parametersArray);
+
+    public String addStudent(Map<String, Student> students, String[] parametersArray, String dataFolderPath);
 }

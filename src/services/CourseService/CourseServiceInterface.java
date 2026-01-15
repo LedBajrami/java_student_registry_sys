@@ -12,4 +12,6 @@ public interface CourseServiceInterface {
     public String findCourse(Map<String, Course> courses, String courseCode);
 
     public String queryCourse(Map<String, Course> courses, String[] parametersArray);
+
+    public String addCourse(Map<String, Course> courses, String[] parametersArray, String dataFolderPath);
 }

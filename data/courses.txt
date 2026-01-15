@@ -8,3 +8,5 @@ CS501, Advanced Databases, 3
 CS601, Machine Learning, 4
 ENG101, English Composition, 3
 PHYS201, Physics I, 4
+CS105, intro, 3
+CS701, intro, 4

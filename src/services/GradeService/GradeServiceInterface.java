@@ -14,4 +14,8 @@ public interface GradeServiceInterface {
     public String findGrade(List<Grade> grades, Map<String, Student> students, Map<String, Course> courses, String studentId, String courseCode);
 
     public String queryGrade(List<Grade> grades, String[] parametersArray);
+
+    public String addGrade(List<Grade> grades, Map<String, Student> students, Map<String, Course> courses, String[] parametersArray, String dataFolderPath);
 }
+
+

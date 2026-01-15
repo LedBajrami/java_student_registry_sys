@@ -12,6 +12,8 @@ import utils.GradeCalculator;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 
@@ -21,6 +23,7 @@ public class RegistrySystem {
     private Map<String, Course> courses;
     private List<Grade> grades;
     private boolean dataLoaded;
+    private String dataFolderPath;
 
     // service dependencies declaration
     private StudentServiceInterface studentService;
@@ -44,7 +47,9 @@ public class RegistrySystem {
         checkIfDataLoadedLoadCommand();
 
         // validate folder exists
-        java.nio.file.Path path = java.nio.file.Paths.get(folderPath);
+        Path path = Paths.get(folderPath);
+        this.dataFolderPath = folderPath;
+
         if (!Files.exists(path) || !Files.isDirectory(path)) {
             throw new IOException("invalid folder name");
         }
@@ -54,9 +59,9 @@ public class RegistrySystem {
         String courseFile = folderPath + "/courses.txt";
         String gradeFile = folderPath + "/grades.txt";
 
-        if (!Files.exists(java.nio.file.Paths.get(studentFile)) ||
-                !Files.exists(java.nio.file.Paths.get(courseFile)) ||
-                !Files.exists(java.nio.file.Paths.get(gradeFile))) {
+        if (!Files.exists(Paths.get(studentFile)) ||
+                !Files.exists(Paths.get(courseFile)) ||
+                !Files.exists(Paths.get(gradeFile))) {
             throw new IOException("data files not found");
         }
 
@@ -106,7 +111,23 @@ public class RegistrySystem {
 
     public String queryGrade(String[] parametersArray) {
         checkIfDataLoaded();
-        return  gradeService.queryGrade(grades, parametersArray);
+        return gradeService.queryGrade(grades, parametersArray);
+    }
+
+    // --- ADD METHOD ---
+    public String addCourse(String[] parametersArray) {
+        checkIfDataLoaded();
+        return courseService.addCourse(courses, parametersArray, dataFolderPath);
+    }
+
+    public String addStudent(String[] parametersArray) {
+        checkIfDataLoaded();
+        return studentService.addStudent(students, parametersArray, dataFolderPath);
+    }
+
+    public String addGrade(String[] parametersArray) {
+        checkIfDataLoaded();
+        return gradeService.addGrade(grades, students, courses, parametersArray, dataFolderPath);
     }
 
 

@@ -1,5 +1,7 @@
 package utils;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -16,5 +18,17 @@ public class FileHandler {
         }
     }
 
-   // todo: implement the method to append lines to the files
+    public static void appendLines(String filePath, String values) throws IOException {
+        if (!Files.exists(Paths.get(filePath))) {
+            throw new IOException("File does not exist: " + filePath);
+        }
+
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath, true))) {
+            bw.write(values);
+            bw.newLine();
+        } catch (IOException e) {
+            throw new IOException("Failed to append to file: " + filePath, e);
+        }
+    }
 }
+

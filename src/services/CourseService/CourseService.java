@@ -2,6 +2,7 @@ package services.CourseService;
 
 import entities.Course;
 import entities.Level;
+import utils.FileHandler;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -106,4 +107,45 @@ public class CourseService implements CourseServiceInterface {
 
         return String.format("%d records found\n%s", foundCourses.size(), coursesString);
     }
+
+    @Override
+    public String addCourse(Map<String, Course> courses, String[] parametersArray, String dataFolderPath) {
+        if (parametersArray.length == 2) {
+            return "error: credits field missing";
+        }
+
+        if (parametersArray.length != 3) {
+            return "error: expected command - add course code, title, credits";
+        }
+
+        String code = parametersArray[0].trim();
+        String title = parametersArray[1].trim();
+        String credits = parametersArray[2].trim();
+
+        if (credits.isEmpty()) return "error: credits field missing";
+        if (title.isEmpty() || code.isEmpty()) return "error: required field is empty. Expected command - add course code, title, credits";
+
+        int intCredits;
+        try {
+            intCredits = Integer.parseInt(credits);
+        } catch (NumberFormatException e) {
+            return "error: credits must be a number";
+        }
+
+        if (courses.containsKey(code)) return "error: course with code " + code + " is already present";
+
+        try {
+            Course course = new Course(code, title, intCredits);
+
+            FileHandler.appendLines(dataFolderPath + "/courses.txt", course.toString());
+            courses.put(code, course);
+
+            return "1 record added";
+        } catch (IOException e) {
+            return "error: data file not found or could not be written";
+        } catch (IllegalArgumentException e) {
+            return "error: " + e.getMessage();
+        }
+    }
+
 }

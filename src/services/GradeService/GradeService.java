@@ -3,6 +3,7 @@ package services.GradeService;
 import entities.Course;
 import entities.Grade;
 import entities.Student;
+import utils.FileHandler;
 import utils.GradeCalculator;
 
 import java.io.IOException;
@@ -126,4 +127,54 @@ public class GradeService implements GradeServiceInterface {
 
         return String.format("%d records found\n%s", foundGrades.size(), gradesString);
     }
+
+    @Override
+    public String addGrade(List<Grade> grades, Map<String, Student> students, Map<String, Course> courses, String[] parametersArray, String dataFolderPath) {
+        if (parametersArray.length != 4) {
+            return "error: expected command - add grade studentId, courseCode, semester, grade";
+        }
+
+        String studentId = parametersArray[0].trim();
+        String courseCode = parametersArray[1].trim();
+        String semester = parametersArray[2].trim();
+        String gradeStr = parametersArray[3].trim();
+
+
+        if (studentId.isEmpty() || courseCode.isEmpty() || semester.isEmpty() || gradeStr.isEmpty()) return "error: required field is empty. Expected command - add student id, name, surname, email, level";
+
+        int gradeInt;
+        try {
+            gradeInt = Integer.parseInt(gradeStr);
+        } catch (NumberFormatException e) {
+            return "error: grade must be a number";
+        }
+
+        // Check if the specified student and course exists first of all
+        if (!students.containsKey(studentId)) {
+            return "error: student with id " + studentId + " does not exist";
+        }
+        if (!courses.containsKey(courseCode)) {
+            return "error: course with code " + courseCode + " does not exist";
+        }
+
+        for (Grade g : grades) {
+            if (studentId.equals(g.getStudentId()) && courseCode.equals(g.getCourseCode())) {
+                return "error: grade for (" + studentId + ", " + courseCode + ") is already present";
+            }
+        }
+
+        try {
+            Grade grade = new Grade(studentId, courseCode, semester, gradeInt);
+
+            FileHandler.appendLines(dataFolderPath + "/grades.txt", grade.toString());
+            grades.add(grade);
+
+            return "1 record added";
+        } catch (IOException e) {
+            return "error: data file not found or could not be written";
+        } catch (IllegalArgumentException e) {
+            return "error: " + e.getMessage();
+        }
+    }
+
 }

@@ -4,6 +4,7 @@ import entities.Course;
 import entities.Grade;
 import entities.Level;
 import entities.Student;
+import utils.FileHandler;
 import utils.GradeCalculator;
 
 import java.io.IOException;
@@ -114,7 +115,7 @@ public class StudentService implements StudentServiceInterface{
                             if (!student.getSurname().equals(value)) matches = false;
                             break;
                         case "email":
-                            if (!student.getEmail().equals(value)) matches = false;
+                            if (!value.equals(student.getEmail())) matches = false;
                             break;
                         case "level":
                             // Convert string to Level enum, then compare
@@ -164,4 +165,42 @@ public class StudentService implements StudentServiceInterface{
 
         return String.format("%d records found\n%s", foundStudents.size(), studentsString);
     }
+
+    @Override
+    public String addStudent(Map<String, Student> students, String[] parametersArray, String dataFolderPath) {
+        if (parametersArray.length != 5) {
+            return "error: expected command - add student id, name, surname, email, level";
+        }
+
+        String id = parametersArray[0].trim();
+        String name = parametersArray[1].trim();
+        String surname = parametersArray[2].trim();
+        String email = parametersArray[3].trim();
+        String level = parametersArray[4].trim();
+
+        if (id.isEmpty() || name.isEmpty() || surname.isEmpty() || level.isEmpty()) return "error: required field is empty. Expected command - add student id, name, surname, email, level";
+
+        Level studentLevel;
+        try {
+            studentLevel = Level.valueOf(level.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return "error: level should be either G or UG";
+        }
+
+        if (students.containsKey(id)) return "error: student with id " + id + " is already present";
+
+        try {
+            Student student = new Student(id, name, surname, email, studentLevel);
+
+            FileHandler.appendLines(dataFolderPath + "/students.txt", student.toString());
+            students.put(id, student);
+
+            return "1 record added";
+        } catch (IOException e) {
+            return "error: data file not found or could not be written";
+        } catch (IllegalArgumentException e) {
+            return "error: " + e.getMessage();
+        }
+    }
+
 }

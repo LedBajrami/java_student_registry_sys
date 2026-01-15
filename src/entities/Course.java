@@ -7,7 +7,7 @@ public class Course {
 
     public Course(String code, String title, int credits) {
         if (code == null || !code.matches("[A-Z]{2,4}[0-9]{3}")) {
-            throw new IllegalArgumentException("Invalid course code format");
+            throw new IllegalArgumentException("Invalid course code format. Expected format: 2–4 uppercase letters followed by 3 digits (e.g., CS101, MATH204).");
         }
         this.code = code;
 

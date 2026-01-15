@@ -1,7 +1,4 @@
-import commands.CLICommandInterface;
-import commands.FindCommand;
-import commands.LoadCommand;
-import commands.QueryCommand;
+import commands.*;
 import registry.RegistrySystem;
 
 import java.io.IOException;
@@ -32,6 +29,8 @@ public class Main {
                 result = FindCommand.exec(input, registrySystem);
             } else if (formattedInput.startsWith("query")) {
                 result = QueryCommand.exec(input, registrySystem);
+            } else if (formattedInput.startsWith("add")) {
+                result = AddCommand.exec(input, registrySystem);
             } else  {
                 result = "Unknown command: " + input;
             }
