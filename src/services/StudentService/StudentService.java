@@ -142,7 +142,7 @@ public class StudentService implements StudentServiceInterface{
                             if (!student.getSurname().contains(value)) matches = false;
                             break;
                         case "email":
-                            if (!student.getEmail().contains(value)) matches = false;
+                            if (!value.equals(student.getEmail())) matches = false;
                             break;
                         case "level":
                             // Convert string to Level enum, then compare
