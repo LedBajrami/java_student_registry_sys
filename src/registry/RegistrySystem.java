@@ -9,12 +9,18 @@ import services.StudentService.StudentService;
 import services.StudentService.StudentServiceInterface;
 import utils.FileHandler;
 import utils.GradeCalculator;
+import utils.export.ExportFileHandler;
+import utils.export.course.CourseReportData;
+import utils.export.student.StudentReportData;
+import utils.export.transcript.SemesterComparator;
+import utils.export.transcript.TranscriptReportData;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class RegistrySystem {
@@ -29,6 +35,8 @@ public class RegistrySystem {
     private StudentServiceInterface studentService;
     private CourseServiceInterface courseService;
     private GradeServiceInterface gradeService;
+    private ExportFileHandler exportableService;
+
 
     public RegistrySystem() {
         this.students = new HashMap<>();
@@ -36,9 +44,10 @@ public class RegistrySystem {
         this.grades = new ArrayList<>();
         this.dataLoaded = false;
 
-        this.studentService = new StudentService();
-        this.courseService = new CourseService();
-        this.gradeService = new GradeService();
+        this.exportableService = new ExportFileHandler();
+        this.studentService = new StudentService(exportableService);
+        this.courseService = new CourseService(exportableService);
+        this.gradeService = new GradeService(exportableService);
     }
 
     // --- LOAD METHOD ---
@@ -82,6 +91,8 @@ public class RegistrySystem {
         return successMessage;
     }
 
+
+
     // --- FIND METHOD ---
     public String findCourse(String courseCode) {
         checkIfDataLoaded();
@@ -97,6 +108,8 @@ public class RegistrySystem {
         checkIfDataLoaded();
         return gradeService.findGrade(grades, students, courses, studentId, courseCode);
     }
+
+
 
     // --- QUERY METHOD ---
     public String queryCourse(String[] parametersArray) {
@@ -114,6 +127,8 @@ public class RegistrySystem {
         return gradeService.queryGrade(grades, parametersArray);
     }
 
+
+
     // --- ADD METHOD ---
     public String addCourse(String[] parametersArray) {
         checkIfDataLoaded();
@@ -128,6 +143,24 @@ public class RegistrySystem {
     public String addGrade(String[] parametersArray) {
         checkIfDataLoaded();
         return gradeService.addGrade(grades, students, courses, parametersArray, dataFolderPath);
+    }
+
+
+
+    // --- REPORT METHOD ---
+    public String reportTopCourses(int value, String fileName) throws IOException {
+        checkIfDataLoaded();
+        return courseService.reportTopCourses(courses, grades, value, fileName);
+    }
+
+    public String reportTopStudents(int value, String fileName) throws IOException {
+        checkIfDataLoaded();
+        return studentService.reportTopStudents(students, courses, grades, value, fileName);
+    }
+
+    public String reportTranscript(String studentId, String fileName) throws IOException {
+        checkIfDataLoaded();
+        return studentService.reportTranscript(students, courses, grades, studentId, fileName);
     }
 
 

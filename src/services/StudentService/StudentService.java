@@ -6,13 +6,25 @@ import entities.Level;
 import entities.Student;
 import utils.FileHandler;
 import utils.GradeCalculator;
+import utils.export.ExportFileHandler;
+import utils.export.student.StudentReportData;
+import utils.export.transcript.SemesterComparator;
+import utils.export.transcript.TranscriptReportData;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class StudentService implements StudentServiceInterface{
+    private final ExportFileHandler exportableService;
+
+    public StudentService(ExportFileHandler exportableService) {
+        this.exportableService = exportableService;
+    }
+
     @Override
     public void loadStudents(List<String> studentLines, Map<String, Student> students) throws IOException {
         for (String line : studentLines) {
@@ -203,4 +215,74 @@ public class StudentService implements StudentServiceInterface{
         }
     }
 
+    @Override
+    public String reportTopStudents(Map<String, Student> students, Map<String, Course> courses, List<Grade> grades, int value, String fileName) throws IOException {
+        // group grades by student id
+        Map<String, List<Grade>> studentsGrades = grades.stream()
+                .collect(Collectors.groupingBy(Grade::getStudentId));
+
+        // then convert the map to a stream, loop by entry set, do the calculations, sort
+        List<StudentReportData> bestStudents = studentsGrades.entrySet().stream()
+                .map(entryStudent -> {
+                    Student student = students.get(entryStudent.getKey());
+                    if (student == null) return null;
+
+
+                    double gpa = GradeCalculator.calculateGPA(entryStudent.getValue(), courses, student.getLevel());
+                    int totalCredits =  entryStudent.getValue().stream()
+                            .mapToInt(grade ->
+                                    courses.get(grade.getCourseCode()).getCredits()
+                            ).sum();
+
+                    return new StudentReportData(student, gpa, totalCredits);
+                })
+                .filter(data -> data != null && data.getGpa() > 0.0 && data.getTotalCredits() > 0) // filter 0 gpa and credits to not mess up sorting
+                .sorted(Comparator.comparingDouble(StudentReportData::getGpa).reversed()
+                        .thenComparingInt(StudentReportData::getTotalCredits))
+                .limit(value)
+                .collect(Collectors.toList());
+
+        return exportableService.exportTo(bestStudents, fileName);
+    }
+
+    @Override
+    public String reportTranscript(Map<String, Student> students, Map<String, Course> courses, List<Grade> grades, String studentId, String fileName) throws IOException {
+        Student student = students.get(studentId);
+        if (student == null) {
+            return "error: no student found for given id";
+        }
+
+        List<Grade> studentGrades = grades.stream()
+                .filter(grade -> grade.getStudentId().equals(studentId))
+                .collect(Collectors.toList());
+
+        if (studentGrades.isEmpty()) {
+            return "error: no grades found for student " + studentId;
+        }
+
+        List<TranscriptReportData> transcriptData = studentGrades.stream()
+                .map(grade -> {
+                    Course course = courses.get(grade.getCourseCode());
+                    if (course == null) return null;
+
+                    return new TranscriptReportData(
+                            student.getId(),
+                            student.getName(),
+                            student.getLevel().toString(),
+                            grade.getSemester(),
+                            course.getCode(),
+                            course.getTitle(),
+                            course.getCredits(),
+                            String.valueOf(grade.getNumericGrade())
+                    );
+                })
+                .filter(data -> data != null)
+                .sorted(Comparator.comparing(
+                        TranscriptReportData::getSemester,
+                        new SemesterComparator()
+                ))
+                .collect(Collectors.toList());
+
+        return exportableService.exportTo(transcriptData, fileName);
+    }
 }

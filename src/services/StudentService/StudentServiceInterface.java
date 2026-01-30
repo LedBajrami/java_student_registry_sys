@@ -16,4 +16,8 @@ public interface StudentServiceInterface {
     public String queryStudent(Map<String, Student> students, String[] parametersArray);
 
     public String addStudent(Map<String, Student> students, String[] parametersArray, String dataFolderPath);
+
+    public String reportTopStudents(Map<String, Student> students, Map<String, Course> courses, List<Grade> grades, int value, String fileName) throws IOException;
+
+    public String reportTranscript(Map<String, Student> students, Map<String, Course> courses, List<Grade> grades, String studentId, String fileName) throws IOException;
 }

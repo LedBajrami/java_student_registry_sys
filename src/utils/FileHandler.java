@@ -6,15 +6,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class FileHandler {
     public static List<String> readLines(String filePath) throws IOException {
-        try {
-            List<String> lines = Files.readAllLines(Paths.get(filePath));
-
-            return lines;
-        } catch (IOException e) {
-            throw new IOException("Failed to read the file: " + filePath, e);
+        try (Stream<String> lines = Files.lines(Paths.get(filePath))) {
+            return lines.toList();
         }
     }
 

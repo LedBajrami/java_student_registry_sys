@@ -1,15 +1,23 @@
 package services.CourseService;
 
 import entities.Course;
+import entities.Grade;
 import entities.Level;
 import utils.FileHandler;
+import utils.export.ExportFileHandler;
+import utils.export.course.CourseReportData;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class CourseService implements CourseServiceInterface {
+    private final ExportFileHandler exportableService;
+
+    public CourseService(ExportFileHandler exportableService) {
+        this.exportableService = exportableService;
+    }
+
     @Override
     public void loadCourses(List<String> courseLines, Map<String, Course> courses) throws IOException {
         for (String line : courseLines) {
@@ -110,17 +118,33 @@ public class CourseService implements CourseServiceInterface {
 
     @Override
     public String addCourse(Map<String, Course> courses, String[] parametersArray, String dataFolderPath) {
-        if (parametersArray.length == 2) {
+        Map<String, String> params = new HashMap<>();
+        for (String param : parametersArray) {
+            String[] parts = param.split("=", 2);
+            if (parts.length == 2) {
+                params.put(parts[0].trim().toLowerCase(), parts[1].trim());
+            }
+        }
+
+        // Now you KNOW exactly which fields are present
+        String code = params.get("code");
+        String title = params.get("title");
+        String credits = params.get("credits");
+
+        // Check specifically which ones are missing
+        if (code == null) {
+            return "error: code field missing";
+        }
+        if (title == null) {
+            return "error: title field missing";
+        }
+        if (credits == null) {
             return "error: credits field missing";
         }
 
         if (parametersArray.length != 3) {
             return "error: expected command - add course code, title, credits";
         }
-
-        String code = parametersArray[0].trim();
-        String title = parametersArray[1].trim();
-        String credits = parametersArray[2].trim();
 
         if (credits.isEmpty()) return "error: credits field missing";
         if (title.isEmpty() || code.isEmpty()) return "error: required field is empty. Expected command - add course code, title, credits";
@@ -148,4 +172,27 @@ public class CourseService implements CourseServiceInterface {
         }
     }
 
+    public String reportTopCourses(Map<String, Course> courses, List<Grade> grades, int value, String fileName) throws IOException {
+        // Group grades by course code
+        Map<String, List<Grade>> gradesByCourse = grades.stream()
+                .collect(Collectors.groupingBy(Grade::getCourseCode));
+
+        // filter, sort...
+        List<CourseReportData> topCourses = gradesByCourse.entrySet().stream()
+                .map(courseEntry -> {
+                    Course course = courses.get(courseEntry.getKey());
+                    if (course == null) return null;
+
+                    int filedGrades = courseEntry.getValue().size();
+
+                    return new CourseReportData(course, filedGrades);
+                })
+                .filter(data -> data != null)
+                .filter(data -> data.getFiledGrades() > 0)
+                .sorted(Comparator.comparingInt(CourseReportData::getFiledGrades).reversed())
+                .limit(value)
+                .collect(Collectors.toList());
+
+        return exportableService.exportTo(topCourses, fileName);
+    }
 }

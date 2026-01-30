@@ -5,6 +5,7 @@ import entities.Grade;
 import entities.Student;
 import utils.FileHandler;
 import utils.GradeCalculator;
+import utils.export.ExportFileHandler;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,6 +13,12 @@ import java.util.List;
 import java.util.Map;
 
 public class GradeService implements GradeServiceInterface {
+    private final ExportFileHandler exportableService;
+
+    public GradeService(ExportFileHandler exportableService) {
+        this.exportableService = exportableService;
+    }
+
     @Override
     public void loadGrades(List<String> gradeLines, List<Grade> grades) throws IOException {
         for (String line : gradeLines) {
@@ -33,6 +40,9 @@ public class GradeService implements GradeServiceInterface {
 
     @Override
     public String findGrade(List<Grade> grades, Map<String, Student> students, Map<String, Course> courses, String studentId, String courseCode) {
+        long startTime = System.nanoTime();
+
+
         Grade studentGrade = null;
         for (Grade grade : grades) {
             if (grade.getStudentId().equals(studentId) &&
@@ -47,7 +57,10 @@ public class GradeService implements GradeServiceInterface {
             return "no grade found";
         }
 
+
         Course course = courses.get(courseCode);
+        long totalTime = System.nanoTime() - startTime;
+        System.out.println("TOTAL TIME: " + totalTime + "ms");
         return String.format("student: (%s - %s)\ncourse: (%s - %s, %d cr.)\nsemseter: %s\ngrade: %d\nletterGrade: %s",
                 studentId,
                 students.get(studentId).getFullName(),
@@ -58,6 +71,8 @@ public class GradeService implements GradeServiceInterface {
                 studentGrade.getNumericGrade(),
                 GradeCalculator.getLetterGrade(studentGrade.getNumericGrade(), students.get(studentId).getLevel())
         );
+
+
     }
 
     @Override
