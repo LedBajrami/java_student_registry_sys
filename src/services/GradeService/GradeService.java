@@ -190,7 +190,8 @@ public class GradeService implements GradeServiceInterface {
             Grade grade = new Grade(studentId, courseCode, semester, gradeInt);
 
             FileHandler.appendLines(dataFolderPath + "/grades.txt", grade.toString());
-            grades.add(grade);
+
+            dataRepository.addGradeToStudent(studentId, grade);
 
             return "1 record added";
         } catch (IOException e) {

@@ -37,4 +37,13 @@ public class DataRepository {
         this.gradesPerStudent = grades.stream()
                 .collect(Collectors.groupingBy(Grade::getStudentId));
     }
+
+    public void addGradeToStudent(String studentId, Grade grade) {
+        grades.add(grade);
+
+        if (!gradesPerStudent.containsKey(studentId)) {
+            gradesPerStudent.put(studentId, new ArrayList<>());
+        }
+        gradesPerStudent.get(studentId).add(grade);
+    }
 }

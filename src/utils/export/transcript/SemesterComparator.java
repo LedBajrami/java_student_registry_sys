@@ -19,29 +19,11 @@ public class SemesterComparator implements Comparator<String> {
             return 1;   // semester2 comes before semester1
         }
 
-        // if the year is the same, then we compare by term Spring < Summer < Fall < Winter
+        // if the year is the same, compare by term: Spring < Fall
+        // (reverse alphabetical since "Fall" < "Spring" alphabetically)
         String termString1 = semester1.replaceAll("[0-9]", "");  // Remove numbers
         String termString2 = semester2.replaceAll("[0-9]", "");
 
-        int term1 = getTermNumber(termString1);
-        int term2 = getTermNumber(termString2);
-
-        if (term1 < term2) {
-            return -1;  // term1 comes before term2
-        } else if (term1 > term2) {
-            return 1;   // term2 comes before term1
-        } else {
-            return 0;   // They are equal
-        }
-    }
-
-    private int getTermNumber(String term) {
-        switch (term) {
-            case "Spring": return 1;
-            case "Summer": return 2;
-            case "Fall": return 3;
-            case "Winter": return 4;
-            default: return 0;
-        }
+        return -termString1.compareTo(termString2);
     }
 }
