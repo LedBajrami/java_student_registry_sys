@@ -3,6 +3,7 @@ package services.GradeService;
 import entities.Course;
 import entities.Grade;
 import entities.Student;
+import registry.DataRepository;
 import utils.FileHandler;
 import utils.GradeCalculator;
 import utils.export.ExportFileHandler;
@@ -13,14 +14,18 @@ import java.util.List;
 import java.util.Map;
 
 public class GradeService implements GradeServiceInterface {
+    private final DataRepository dataRepository;
     private final ExportFileHandler exportableService;
 
-    public GradeService(ExportFileHandler exportableService) {
+    public GradeService(DataRepository dataRepository, ExportFileHandler exportableService) {
+        this.dataRepository = dataRepository;
         this.exportableService = exportableService;
     }
 
     @Override
-    public void loadGrades(List<String> gradeLines, List<Grade> grades) throws IOException {
+    public void loadGrades(List<String> gradeLines) throws IOException {
+        List<Grade> grades = dataRepository.getGrades();
+
         for (String line : gradeLines) {
             if (line.trim().isEmpty()) continue;
 
@@ -39,9 +44,10 @@ public class GradeService implements GradeServiceInterface {
     }
 
     @Override
-    public String findGrade(List<Grade> grades, Map<String, Student> students, Map<String, Course> courses, String studentId, String courseCode) {
-        long startTime = System.nanoTime();
-
+    public String findGrade(String studentId, String courseCode) {
+        Map<String, Student> students = dataRepository.getStudents();
+        Map<String, Course> courses = dataRepository.getCourses();
+        List<Grade> grades = dataRepository.getGrades();
 
         Grade studentGrade = null;
         for (Grade grade : grades) {
@@ -59,8 +65,6 @@ public class GradeService implements GradeServiceInterface {
 
 
         Course course = courses.get(courseCode);
-        long totalTime = System.nanoTime() - startTime;
-        System.out.println("TOTAL TIME: " + totalTime + "ms");
         return String.format("student: (%s - %s)\ncourse: (%s - %s, %d cr.)\nsemseter: %s\ngrade: %d\nletterGrade: %s",
                 studentId,
                 students.get(studentId).getFullName(),
@@ -71,12 +75,12 @@ public class GradeService implements GradeServiceInterface {
                 studentGrade.getNumericGrade(),
                 GradeCalculator.getLetterGrade(studentGrade.getNumericGrade(), students.get(studentId).getLevel())
         );
-
-
     }
 
     @Override
-    public String queryGrade(List<Grade> grades, String[] parametersArray) {
+    public String queryGrade(String[] parametersArray) {
+        List<Grade> grades = dataRepository.getGrades();
+
         ArrayList<Grade> foundGrades = new ArrayList<>();
 
         for (Grade grade : grades) {
@@ -144,7 +148,11 @@ public class GradeService implements GradeServiceInterface {
     }
 
     @Override
-    public String addGrade(List<Grade> grades, Map<String, Student> students, Map<String, Course> courses, String[] parametersArray, String dataFolderPath) {
+    public String addGrade(String[] parametersArray, String dataFolderPath) {
+        Map<String, Student> students = dataRepository.getStudents();
+        Map<String, Course> courses = dataRepository.getCourses();
+        List<Grade> grades = dataRepository.getGrades();
+
         if (parametersArray.length != 4) {
             return "error: expected command - add grade studentId, courseCode, semester, grade";
         }

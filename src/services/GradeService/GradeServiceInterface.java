@@ -9,13 +9,13 @@ import java.util.List;
 import java.util.Map;
 
 public interface GradeServiceInterface {
-    public void loadGrades(List<String> gradeLines, List<Grade> grades) throws IOException;
+    public void loadGrades(List<String> gradeLines) throws IOException;
 
-    public String findGrade(List<Grade> grades, Map<String, Student> students, Map<String, Course> courses, String studentId, String courseCode);
+    public String findGrade(String studentId, String courseCode);
 
-    public String queryGrade(List<Grade> grades, String[] parametersArray);
+    public String queryGrade(String[] parametersArray);
 
-    public String addGrade(List<Grade> grades, Map<String, Student> students, Map<String, Course> courses, String[] parametersArray, String dataFolderPath);
+    public String addGrade(String[] parametersArray, String dataFolderPath);
 }
 
 

@@ -25,9 +25,7 @@ import java.util.stream.Collectors;
 
 public class RegistrySystem {
 
-    private Map<String, Student> students;
-    private Map<String, Course> courses;
-    private List<Grade> grades;
+    private DataRepository dataRepository;
     private boolean dataLoaded;
     private String dataFolderPath;
 
@@ -39,15 +37,13 @@ public class RegistrySystem {
 
 
     public RegistrySystem() {
-        this.students = new HashMap<>();
-        this.courses = new HashMap<>();
-        this.grades = new ArrayList<>();
+        this.dataRepository = new DataRepository();
         this.dataLoaded = false;
 
         this.exportableService = new ExportFileHandler();
-        this.studentService = new StudentService(exportableService);
-        this.courseService = new CourseService(exportableService);
-        this.gradeService = new GradeService(exportableService);
+        this.studentService = new StudentService(dataRepository, exportableService);
+        this.courseService = new CourseService(dataRepository, exportableService);
+        this.gradeService = new GradeService(dataRepository, exportableService);
     }
 
     // --- LOAD METHOD ---
@@ -76,18 +72,21 @@ public class RegistrySystem {
 
         // load students
         List<String> studentLines = FileHandler.readLines(studentFile);
-        studentService.loadStudents(studentLines, students);
+        studentService.loadStudents(studentLines);
 
         // load courses
         List<String> courseLines = FileHandler.readLines(courseFile);
-        courseService.loadCourses(courseLines, courses);
+        courseService.loadCourses(courseLines);
 
         // load grades
         List<String> gradeLines = FileHandler.readLines(gradeFile);
-        gradeService.loadGrades(gradeLines, grades);
+        gradeService.loadGrades(gradeLines);
+
+        // build grades per student
+        dataRepository.buildGradesPerStudent();
 
         dataLoaded = true;
-        String successMessage = "loaded " + students.size() + " students, " + courses.size() + " courses, and " + grades.size() + " grades";
+        String successMessage = "loaded " + dataRepository.getStudents().size() + " students, " + dataRepository.getCourses().size() + " courses, and " + dataRepository.getGrades().size() + " grades";
         return successMessage;
     }
 
@@ -96,17 +95,17 @@ public class RegistrySystem {
     // --- FIND METHOD ---
     public String findCourse(String courseCode) {
         checkIfDataLoaded();
-        return courseService.findCourse(courses, courseCode);
+        return courseService.findCourse(courseCode);
     }
 
     public String findStudent(String studentId) {
         checkIfDataLoaded();
-        return studentService.findStudent(students, courses, grades, studentId);
+        return studentService.findStudent(studentId);
     }
 
     public String findGrade(String studentId, String courseCode) {
         checkIfDataLoaded();
-        return gradeService.findGrade(grades, students, courses, studentId, courseCode);
+        return gradeService.findGrade(studentId, courseCode);
     }
 
 
@@ -114,17 +113,17 @@ public class RegistrySystem {
     // --- QUERY METHOD ---
     public String queryCourse(String[] parametersArray) {
         checkIfDataLoaded();
-        return courseService.queryCourse(courses, parametersArray);
+        return courseService.queryCourse(parametersArray);
     }
 
     public String queryStudent(String[] parametersArray) {
         checkIfDataLoaded();
-        return studentService.queryStudent(students, parametersArray);
+        return studentService.queryStudent(parametersArray);
     }
 
     public String queryGrade(String[] parametersArray) {
         checkIfDataLoaded();
-        return gradeService.queryGrade(grades, parametersArray);
+        return gradeService.queryGrade(parametersArray);
     }
 
 
@@ -132,17 +131,17 @@ public class RegistrySystem {
     // --- ADD METHOD ---
     public String addCourse(String[] parametersArray) {
         checkIfDataLoaded();
-        return courseService.addCourse(courses, parametersArray, dataFolderPath);
+        return courseService.addCourse(parametersArray, dataFolderPath);
     }
 
     public String addStudent(String[] parametersArray) {
         checkIfDataLoaded();
-        return studentService.addStudent(students, parametersArray, dataFolderPath);
+        return studentService.addStudent(parametersArray, dataFolderPath);
     }
 
     public String addGrade(String[] parametersArray) {
         checkIfDataLoaded();
-        return gradeService.addGrade(grades, students, courses, parametersArray, dataFolderPath);
+        return gradeService.addGrade(parametersArray, dataFolderPath);
     }
 
 
@@ -150,17 +149,17 @@ public class RegistrySystem {
     // --- REPORT METHOD ---
     public String reportTopCourses(int value, String fileName) throws IOException {
         checkIfDataLoaded();
-        return courseService.reportTopCourses(courses, grades, value, fileName);
+        return courseService.reportTopCourses(value, fileName);
     }
 
     public String reportTopStudents(int value, String fileName) throws IOException {
         checkIfDataLoaded();
-        return studentService.reportTopStudents(students, courses, grades, value, fileName);
+        return studentService.reportTopStudents(value, fileName);
     }
 
     public String reportTranscript(String studentId, String fileName) throws IOException {
         checkIfDataLoaded();
-        return studentService.reportTranscript(students, courses, grades, studentId, fileName);
+        return studentService.reportTranscript(studentId, fileName);
     }
 
 

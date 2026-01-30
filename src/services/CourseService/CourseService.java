@@ -3,6 +3,8 @@ package services.CourseService;
 import entities.Course;
 import entities.Grade;
 import entities.Level;
+import entities.Student;
+import registry.DataRepository;
 import utils.FileHandler;
 import utils.export.ExportFileHandler;
 import utils.export.course.CourseReportData;
@@ -12,14 +14,18 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class CourseService implements CourseServiceInterface {
+    private final DataRepository dataRepository;
     private final ExportFileHandler exportableService;
 
-    public CourseService(ExportFileHandler exportableService) {
+    public CourseService(DataRepository dataRepository, ExportFileHandler exportableService) {
+        this.dataRepository = dataRepository;
         this.exportableService = exportableService;
     }
 
     @Override
-    public void loadCourses(List<String> courseLines, Map<String, Course> courses) throws IOException {
+    public void loadCourses(List<String> courseLines) throws IOException {
+        Map<String, Course> courses = dataRepository.getCourses();
+
         for (String line : courseLines) {
             if (line.trim().isEmpty()) continue;
 
@@ -37,7 +43,9 @@ public class CourseService implements CourseServiceInterface {
     }
 
     @Override
-    public String findCourse(Map<String, Course> courses, String courseCode) {
+    public String findCourse(String courseCode) {
+        Map<String, Course> courses = dataRepository.getCourses();
+
         if (!courses.containsKey(courseCode)) {
             return "no course found";
         }
@@ -53,7 +61,9 @@ public class CourseService implements CourseServiceInterface {
     }
 
     @Override
-    public String queryCourse(Map<String, Course> courses, String[] parametersArray) {
+    public String queryCourse(String[] parametersArray) {
+        Map<String, Course> courses = dataRepository.getCourses();
+
         ArrayList<Course> foundCourses = new ArrayList<>();
 
         for (Course course : courses.values()) {
@@ -117,8 +127,11 @@ public class CourseService implements CourseServiceInterface {
     }
 
     @Override
-    public String addCourse(Map<String, Course> courses, String[] parametersArray, String dataFolderPath) {
+    public String addCourse(String[] parametersArray, String dataFolderPath) {
+        Map<String, Course> courses = dataRepository.getCourses();
+
         Map<String, String> params = new HashMap<>();
+
         for (String param : parametersArray) {
             String[] parts = param.split("=", 2);
             if (parts.length == 2) {
@@ -172,7 +185,10 @@ public class CourseService implements CourseServiceInterface {
         }
     }
 
-    public String reportTopCourses(Map<String, Course> courses, List<Grade> grades, int value, String fileName) throws IOException {
+    public String reportTopCourses(int value, String fileName) throws IOException {
+        Map<String, Course> courses = dataRepository.getCourses();
+        List<Grade> grades = dataRepository.getGrades();
+
         // Group grades by course code
         Map<String, List<Grade>> gradesByCourse = grades.stream()
                 .collect(Collectors.groupingBy(Grade::getCourseCode));

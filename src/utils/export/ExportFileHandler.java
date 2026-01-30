@@ -3,6 +3,9 @@ package utils.export;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +28,7 @@ public class ExportFileHandler {
 
             return "report generated";
         } catch (IOException e) {
-            throw new IOException("Failed to append to file: " + filePath, e);
+            throw new IOException("Failed to generate the report: " + filePath, e);
         }
     }
 
@@ -59,7 +62,7 @@ public class ExportFileHandler {
 
             return "report generated";
         } catch (IOException e) {
-            throw new IOException("Failed to append to file: " + " /data/exportData/" + filePath, e);
+            throw new IOException("Failed to generate the report: " + filePath, e);
         }
     }
 
@@ -84,12 +87,17 @@ public class ExportFileHandler {
 
             return "report generated";
         } catch (IOException e) {
-            throw new IOException("Failed to append to file: " + " /data/exportData/" + filePath, e);
+            throw new IOException("Failed to generate the report: " + filePath, e);
         }
     }
 
     public <T extends ExportableInterface> String exportTo(List<T> data, String fileName) throws IOException {
+        Path folder = Paths.get("reportData"); // we check if there is an already existent folder "reportData" if not we create it automatically for smoother user experience
+        Files.createDirectories(folder);
+
         String filePath = "reportData/" + fileName;
+
+
         try {
             if (fileName.endsWith(".csv")) {
                 return exportToCSV(data, filePath);

@@ -4,6 +4,7 @@ import entities.Course;
 import entities.Grade;
 import entities.Level;
 import entities.Student;
+import registry.DataRepository;
 import utils.FileHandler;
 import utils.GradeCalculator;
 import utils.export.ExportFileHandler;
@@ -19,14 +20,19 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class StudentService implements StudentServiceInterface{
+    private final DataRepository dataRepository;
     private final ExportFileHandler exportableService;
 
-    public StudentService(ExportFileHandler exportableService) {
+
+    public StudentService(DataRepository dataRepository, ExportFileHandler exportableService) {
+        this.dataRepository = dataRepository;
         this.exportableService = exportableService;
     }
 
     @Override
-    public void loadStudents(List<String> studentLines, Map<String, Student> students) throws IOException {
+    public void loadStudents(List<String> studentLines) throws IOException {
+        Map<String, Student> students = dataRepository.getStudents();
+
         for (String line : studentLines) {
             if (line.trim().isEmpty()) continue;
 
@@ -53,57 +59,47 @@ public class StudentService implements StudentServiceInterface{
     }
 
     @Override
-    public String findStudent(Map<String, Student> students, Map<String, Course> courses, List<Grade> grades, String studentId) {
+    public String findStudent(String studentId) {
+        Map<String, Student> students = dataRepository.getStudents();
+        Map<String, Course> courses = dataRepository.getCourses();
+        Map<String, List<Grade>> gradesPerStudent = dataRepository.getGradesPerStudent();
+
         if (!students.containsKey(studentId)) {
             return "no student found";
         }
 
-        Student student = students.get(studentId);
-        int totalCredits = 0;
-
-        /* iterate to:
-            1. populate the studentGrades list, to then pass for gpa calculation
-            2. find the unique courses the student has taken
-         */
-        List<Grade> studentGrades = new ArrayList<>();
-        List<String> uniqueCourses = new ArrayList<>();
-        for (Grade studentGrade : grades) {
-            // check to see if we have the correct student
-            if (!studentGrade.getStudentId().equals(studentId)) {
-                continue;
-            }
-            studentGrades.add(studentGrade);
-
-            String courseCode = studentGrade.getCourseCode();
-            if (!uniqueCourses.contains(courseCode)) {
-                uniqueCourses.add(studentGrade.getCourseCode());
-            }
-
-            totalCredits += courses.get(courseCode).getCredits();
-        }
-
-        if (studentGrades.isEmpty()) {
+        if (!gradesPerStudent.containsKey(studentId)) {
             return "student has no grades";
         }
+
+        Student student = students.get(studentId);
+
+        List<Grade> studentGrades = gradesPerStudent.get(studentId);
+        int totalCredits = studentGrades.stream().
+                mapToInt(grade ->
+                courses.get(grade.getCourseCode()).getCredits())
+                .sum();
+        int coursesTaken = studentGrades.size();
+
 
         String studentLevel = student.getLevel() == Level.UG ? "undergraduate" : "graduate";
         double gpa = GradeCalculator.calculateGPA(studentGrades, courses, student.getLevel());
 
-        return String.format("id: %s\nname: %s\nsurname: %s\nemail: %s\nlevel: %s\ncourses: %d\ncourses: %d\ngpa: %.2f",
+        return String.format("id: %s\nname: %s\nsurname: %s\nemail: %s\nlevel: %s\ncourses: %d\ntotalCredits: %d\ngpa: %.2f",
                 student.getId(),
                 student.getName(),
                 student.getSurname(),
                 student.getEmail(),
                 studentLevel,
-                uniqueCourses.size(),
+                coursesTaken,
                 totalCredits,
                 gpa
         );
     }
 
-
     @Override
-    public String queryStudent(Map<String, Student> students, String[] parametersArray) {
+    public String queryStudent(String[] parametersArray) {
+        Map<String, Student> students = dataRepository.getStudents();
         ArrayList<Student> foundStudents = new ArrayList<>();
 
         for (Student student : students.values()) {
@@ -179,7 +175,9 @@ public class StudentService implements StudentServiceInterface{
     }
 
     @Override
-    public String addStudent(Map<String, Student> students, String[] parametersArray, String dataFolderPath) {
+    public String addStudent(String[] parametersArray, String dataFolderPath) {
+        Map<String, Student> students = dataRepository.getStudents();
+
         if (parametersArray.length != 5) {
             return "error: expected command - add student id, name, surname, email, level";
         }
@@ -216,13 +214,13 @@ public class StudentService implements StudentServiceInterface{
     }
 
     @Override
-    public String reportTopStudents(Map<String, Student> students, Map<String, Course> courses, List<Grade> grades, int value, String fileName) throws IOException {
-        // group grades by student id
-        Map<String, List<Grade>> studentsGrades = grades.stream()
-                .collect(Collectors.groupingBy(Grade::getStudentId));
+    public String reportTopStudents(int value, String fileName) throws IOException {
+        Map<String, Student> students = dataRepository.getStudents();
+        Map<String, Course> courses = dataRepository.getCourses();
+        List<Grade> grades = dataRepository.getGrades();
+        Map<String, List<Grade>> gradesPerStudent = dataRepository.getGradesPerStudent();
 
-        // then convert the map to a stream, loop by entry set, do the calculations, sort
-        List<StudentReportData> bestStudents = studentsGrades.entrySet().stream()
+        List<StudentReportData> bestStudents = gradesPerStudent.entrySet().stream()
                 .map(entryStudent -> {
                     Student student = students.get(entryStudent.getKey());
                     if (student == null) return null;
@@ -246,16 +244,17 @@ public class StudentService implements StudentServiceInterface{
     }
 
     @Override
-    public String reportTranscript(Map<String, Student> students, Map<String, Course> courses, List<Grade> grades, String studentId, String fileName) throws IOException {
+    public String reportTranscript(String studentId, String fileName) throws IOException {
+        Map<String, Student> students = dataRepository.getStudents();
+        Map<String, Course> courses = dataRepository.getCourses();
+        Map<String, List<Grade>> gradesPerStudent = dataRepository.getGradesPerStudent();
+
         Student student = students.get(studentId);
         if (student == null) {
             return "error: no student found for given id";
         }
 
-        List<Grade> studentGrades = grades.stream()
-                .filter(grade -> grade.getStudentId().equals(studentId))
-                .collect(Collectors.toList());
-
+        List<Grade> studentGrades = gradesPerStudent.get(studentId);
         if (studentGrades.isEmpty()) {
             return "error: no grades found for student " + studentId;
         }

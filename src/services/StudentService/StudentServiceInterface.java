@@ -9,15 +9,15 @@ import java.util.List;
 import java.util.Map;
 
 public interface StudentServiceInterface {
-    public void loadStudents(List<String> studentLines, Map<String, Student> students) throws IOException;
+    public void loadStudents(List<String> studentLines) throws IOException;
 
-    public String findStudent(Map<String, Student> students, Map<String, Course> courses, List<Grade> grades, String studentId);
+    public String findStudent(String studentId);
 
-    public String queryStudent(Map<String, Student> students, String[] parametersArray);
+    public String queryStudent(String[] parametersArray);
 
-    public String addStudent(Map<String, Student> students, String[] parametersArray, String dataFolderPath);
+    public String addStudent(String[] parametersArray, String dataFolderPath);
 
-    public String reportTopStudents(Map<String, Student> students, Map<String, Course> courses, List<Grade> grades, int value, String fileName) throws IOException;
+    public String reportTopStudents(int value, String fileName) throws IOException;
 
-    public String reportTranscript(Map<String, Student> students, Map<String, Course> courses, List<Grade> grades, String studentId, String fileName) throws IOException;
+    public String reportTranscript(String studentId, String fileName) throws IOException;
 }
