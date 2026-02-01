@@ -11,22 +11,22 @@ import utils.export.ExportFileHandler;
 import utils.export.student.StudentReportData;
 import utils.export.transcript.SemesterComparator;
 import utils.export.transcript.TranscriptReportData;
+import utils.query.QueryService;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class StudentService implements StudentServiceInterface{
     private final DataRepository dataRepository;
     private final ExportFileHandler exportableService;
+    private final QueryService queryService;
 
 
-    public StudentService(DataRepository dataRepository, ExportFileHandler exportableService) {
+    public StudentService(DataRepository dataRepository, ExportFileHandler exportableService, QueryService queryService) {
         this.dataRepository = dataRepository;
         this.exportableService = exportableService;
+        this.queryService = queryService;
     }
 
     @Override
@@ -99,79 +99,22 @@ public class StudentService implements StudentServiceInterface{
 
     @Override
     public String queryStudent(String[] parametersArray) {
-        Map<String, Student> students = dataRepository.getStudents();
-        ArrayList<Student> foundStudents = new ArrayList<>();
+        Collection<Student> students = dataRepository.getStudents().values();
 
-        for (Student student : students.values()) {
-            boolean matches = true;
-
-            for (String parameter : parametersArray) {
-
-                if (parameter.contains("=")) {
-                    String[] commandParts = parameter.split("=");
-                    String key = commandParts[0].trim();
-                    String value = commandParts[1].trim();
-
-                    switch (key) {
-                        case "id":
-                            if (!student.getId().equals(value)) matches = false;
-                            break;
-                        case "name":
-                            if (!student.getName().equals(value)) matches = false;
-                            break;
-                        case "surname":
-                            if (!student.getSurname().equals(value)) matches = false;
-                            break;
-                        case "email":
-                            if (!value.equals(student.getEmail())) matches = false;
-                            break;
-                        case "level":
-                            // Convert string to Level enum, then compare
-                            if (!student.getLevel().name().equals(value)) matches = false;
-                            break;
-                        default:
-                            matches = false;
-                            break;
+        return queryService.query(
+                students,
+                parametersArray,
+                (student, field) -> {
+                    switch (field) {
+                        case "id": return student.getId();
+                        case "name": return student.getName();
+                        case "surname": return student.getSurname();
+                        case "email": return student.getEmail();
+                        case "level": return student.getLevel().name();
+                        default: return null;
                     }
-
-                } else  if (parameter.contains("~")) {
-                    String[] commandParts = parameter.split("~");
-                    String key = commandParts[0].trim();
-                    String value = commandParts[1].trim();
-
-                    switch (key) {
-                        case "id":
-                            if (!student.getId().contains(value)) matches = false;
-                            break;
-                        case "name":
-                            if (!student.getName().contains(value)) matches = false;
-                            break;
-                        case "surname":
-                            if (!student.getSurname().contains(value)) matches = false;
-                            break;
-                        case "email":
-                            if (!value.equals(student.getEmail())) matches = false;
-                            break;
-                        case "level":
-                            // Convert string to Level enum, then compare
-                            if (!student.getLevel().name().contains(value)) matches = false;
-                            break;
-                        default:
-                            matches = false;
-                            break;
-                    }
-
                 }
-            }
-            if (matches) foundStudents.add(student);
-        }
-
-        StringBuilder studentsString = new StringBuilder();
-        for (Student student : foundStudents) {
-            studentsString.append(student.toString()).append("\n");
-        }
-
-        return String.format("%d records found\n%s", foundStudents.size(), studentsString);
+        );
     }
 
     @Override

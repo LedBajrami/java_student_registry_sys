@@ -14,6 +14,7 @@ import utils.export.course.CourseReportData;
 import utils.export.student.StudentReportData;
 import utils.export.transcript.SemesterComparator;
 import utils.export.transcript.TranscriptReportData;
+import utils.query.QueryService;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,6 +35,7 @@ public class RegistrySystem {
     private CourseServiceInterface courseService;
     private GradeServiceInterface gradeService;
     private ExportFileHandler exportableService;
+    private QueryService queryService;
 
 
     public RegistrySystem() {
@@ -41,9 +43,11 @@ public class RegistrySystem {
         this.dataLoaded = false;
 
         this.exportableService = new ExportFileHandler();
-        this.studentService = new StudentService(dataRepository, exportableService);
-        this.courseService = new CourseService(dataRepository, exportableService);
-        this.gradeService = new GradeService(dataRepository, exportableService);
+        this.queryService = new QueryService();
+
+        this.studentService = new StudentService(dataRepository, exportableService, queryService);
+        this.courseService = new CourseService(dataRepository, exportableService, queryService);
+        this.gradeService = new GradeService(dataRepository, exportableService, queryService);
     }
 
     // --- LOAD METHOD ---

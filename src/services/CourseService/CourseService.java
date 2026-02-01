@@ -8,6 +8,7 @@ import registry.DataRepository;
 import utils.FileHandler;
 import utils.export.ExportFileHandler;
 import utils.export.course.CourseReportData;
+import utils.query.QueryService;
 
 import java.io.IOException;
 import java.util.*;
@@ -16,10 +17,14 @@ import java.util.stream.Collectors;
 public class CourseService implements CourseServiceInterface {
     private final DataRepository dataRepository;
     private final ExportFileHandler exportableService;
+    private final QueryService queryService;
 
-    public CourseService(DataRepository dataRepository, ExportFileHandler exportableService) {
+
+    public CourseService(DataRepository dataRepository, ExportFileHandler exportableService, QueryService queryService) {
         this.dataRepository = dataRepository;
         this.exportableService = exportableService;
+        this.queryService = queryService;
+
     }
 
     @Override
@@ -62,102 +67,33 @@ public class CourseService implements CourseServiceInterface {
 
     @Override
     public String queryCourse(String[] parametersArray) {
-        Map<String, Course> courses = dataRepository.getCourses();
+        Collection<Course> courses = dataRepository.getCourses().values();
 
-        ArrayList<Course> foundCourses = new ArrayList<>();
-
-        for (Course course : courses.values()) {
-            boolean matches = true;
-
-            for (String parameter : parametersArray) {
-
-                if (parameter.contains("=")) {
-                    String[] commandParts = parameter.split("=");
-                    String key = commandParts[0].trim();
-                    String value = commandParts[1].trim();
-
-                    switch (key) {
-                        case "title":
-                            if (!course.getTitle().equals(value)) matches = false;
-                            break;
-                        case "code":
-                            if (!course.getCode().equals(value)) matches = false;
-                            break;
-                        case "credits":
-                            // convert the credits to string to avoid problems
-                            if (!String.valueOf(course.getCredits()).equals(value)) matches = false;
-                            break;
-                        default:
-                            matches = false;
-                            break;
-                    }
-
-
-                } else if (parameter.contains("~")) {
-                    String[] commandParts = parameter.split("~");
-                    String key = commandParts[0].trim();
-                    String value = commandParts[1].trim();
-
-                    switch (key) {
-                        case "title":
-                            if (!course.getTitle().contains(value)) matches = false;
-                            break;
-                        case "code":
-                            if (!course.getCode().contains(value)) matches = false;
-                            break;
-                        case "credits":
-                            // convert the credits to string to avoid problems
-                            if (!String.valueOf(course.getCredits()).contains(value)) matches = false;
-                            break;
-                        default:
-                            matches = false;
-                            break;
+        return queryService.query(
+                courses,
+                parametersArray,
+                (course, fieldName) -> {
+                    switch (fieldName) {
+                        case "title": return course.getTitle();
+                        case "code": return course.getCode();
+                        case "credits": return String.valueOf(course.getCredits());
+                        default: return null;
                     }
                 }
-            }
-            if (matches) foundCourses.add(course);
-        }
-
-        StringBuilder coursesString = new StringBuilder();
-        for (Course course : foundCourses) {
-            coursesString.append(course.toString()).append("\n");
-        }
-
-        return String.format("%d records found\n%s", foundCourses.size(), coursesString);
+        );
     }
 
     @Override
     public String addCourse(String[] parametersArray, String dataFolderPath) {
         Map<String, Course> courses = dataRepository.getCourses();
 
-        Map<String, String> params = new HashMap<>();
-
-        for (String param : parametersArray) {
-            String[] parts = param.split("=", 2);
-            if (parts.length == 2) {
-                params.put(parts[0].trim().toLowerCase(), parts[1].trim());
-            }
-        }
-
-        // Now you KNOW exactly which fields are present
-        String code = params.get("code");
-        String title = params.get("title");
-        String credits = params.get("credits");
-
-        // Check specifically which ones are missing
-        if (code == null) {
-            return "error: code field missing";
-        }
-        if (title == null) {
-            return "error: title field missing";
-        }
-        if (credits == null) {
-            return "error: credits field missing";
-        }
-
         if (parametersArray.length != 3) {
             return "error: expected command - add course code, title, credits";
         }
+
+        String code = parametersArray[0].trim();
+        String title = parametersArray[1].trim();
+        String credits = parametersArray[2].trim();
 
         if (credits.isEmpty()) return "error: credits field missing";
         if (title.isEmpty() || code.isEmpty()) return "error: required field is empty. Expected command - add course code, title, credits";

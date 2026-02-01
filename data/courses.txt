@@ -9998,3 +9998,5 @@ PSY895, Advanced Social Psychology, 4
 PSY896, Advanced Introduction to Psychology, 4
 PSY898, Advanced Introduction to Psychology, 3
 PSY899, Advanced Introduction to Psychology, 3
+CS999, OOP with Java, 4
+CS998, OOP with Java, 4

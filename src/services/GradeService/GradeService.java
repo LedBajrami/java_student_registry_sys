@@ -7,19 +7,24 @@ import registry.DataRepository;
 import utils.FileHandler;
 import utils.GradeCalculator;
 import utils.export.ExportFileHandler;
+import utils.query.QueryService;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public class GradeService implements GradeServiceInterface {
     private final DataRepository dataRepository;
     private final ExportFileHandler exportableService;
+    private final QueryService queryService;
 
-    public GradeService(DataRepository dataRepository, ExportFileHandler exportableService) {
+
+    public GradeService(DataRepository dataRepository, ExportFileHandler exportableService, QueryService queryService) {
         this.dataRepository = dataRepository;
         this.exportableService = exportableService;
+        this.queryService = queryService;
     }
 
     @Override
@@ -79,72 +84,21 @@ public class GradeService implements GradeServiceInterface {
 
     @Override
     public String queryGrade(String[] parametersArray) {
-        List<Grade> grades = dataRepository.getGrades();
+        Collection<Grade> grades = dataRepository.getGrades();
 
-        ArrayList<Grade> foundGrades = new ArrayList<>();
-
-        for (Grade grade : grades) {
-            boolean matches = true;
-
-            for (String parameter : parametersArray) {
-
-                if (parameter.contains("=")) {
-                    String[] commandParts = parameter.split("=");
-                    String key = commandParts[0].trim();
-                    String value = commandParts[1].trim();
-
-                    switch (key) {
-                        case "studentId":
-                            if (!grade.getStudentId().equals(value)) matches = false;
-                            break;
-                        case "courseCode":
-                            if (!grade.getCourseCode().equals(value)) matches = false;
-                            break;
-                        case "semester":
-                            if (!grade.getSemester().equals(value)) matches = false;
-                            break;
-                        case "grade":
-                            if (!String.valueOf(grade.getNumericGrade()).equals(value)) matches = false;
-                            break;
-                        default:
-                            matches = false;
-                            break;
+        return queryService.query(
+                grades,
+                parametersArray,
+                (grade, fieldName) -> {
+                    switch (fieldName) {
+                        case "studentId": return grade.getStudentId();
+                        case "courseCode": return grade.getCourseCode();
+                        case "semester": return grade.getSemester();
+                        case "grade": return String.valueOf(grade.getNumericGrade());
+                        default: return null;
                     }
-
-                } else  if (parameter.contains("~")) {
-                    String[] commandParts = parameter.split("~");
-                    String key = commandParts[0].trim();
-                    String value = commandParts[1].trim();
-
-                    switch (key) {
-                        case "studentId":
-                            if (!grade.getStudentId().contains(value)) matches = false;
-                            break;
-                        case "courseCode":
-                            if (!grade.getCourseCode().contains(value)) matches = false;
-                            break;
-                        case "semester":
-                            if (!grade.getSemester().contains(value)) matches = false;
-                            break;
-                        case "grade":
-                            if (!String.valueOf(grade.getNumericGrade()).contains(value)) matches = false;
-                            break;
-                        default:
-                            matches = false;
-                            break;
-                    }
-
                 }
-            }
-            if (matches) foundGrades.add(grade);
-        }
-
-        StringBuilder gradesString = new StringBuilder();
-        for (Grade grade : foundGrades) {
-            gradesString.append(grade.toString()).append("\n");
-        }
-
-        return String.format("%d records found\n%s", foundGrades.size(), gradesString);
+        );
     }
 
     @Override

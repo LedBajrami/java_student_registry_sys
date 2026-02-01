@@ -10,7 +10,7 @@ public class LoadCommand {
            String[] commandParts = command.split(" ");
 
            if (commandParts.length < 2) {
-               return "Please also specify the filePath! Correct command: load <filePath>";
+               return "Please also specify the folderPath! Correct command: load <folderPath>";
            }
 
            String filePath = commandParts[1];
